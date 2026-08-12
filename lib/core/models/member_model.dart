@@ -1,0 +1,73 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'sound_mode.dart';
+
+class Member {
+  final String uid;
+  final String sectorName;
+  final String normalizedSectorName;
+  final int joinedAt;
+  final int updatedAt;
+  final int lastSeenAt;
+  final bool notificationReadiness;
+  final bool exactAlarmReadiness;
+  final SoundMode selectedSoundMode;
+  final List<String> fcmTokens;
+
+  const Member({
+    required this.uid,
+    required this.sectorName,
+    required this.normalizedSectorName,
+    required this.joinedAt,
+    required this.updatedAt,
+    required this.lastSeenAt,
+    required this.notificationReadiness,
+    required this.exactAlarmReadiness,
+    required this.selectedSoundMode,
+    required this.fcmTokens,
+  });
+
+  static int _parseTimestampMs(dynamic val) {
+    if (val is Timestamp) {
+      return val.millisecondsSinceEpoch;
+    } else if (val is num) {
+      return val.toInt();
+    }
+    return DateTime.now().millisecondsSinceEpoch;
+  }
+
+  factory Member.fromJson(Map<String, dynamic> json) {
+    final name = json['sectorName'] as String? ?? 'Sector';
+    return Member(
+      uid: json['uid'] as String? ?? '',
+      sectorName: name,
+      normalizedSectorName: json['normalizedSectorName'] as String? ??
+          name.toLowerCase().replaceAll(RegExp(r'\s+'), ' '),
+      joinedAt: _parseTimestampMs(json['joinedAt']),
+      updatedAt: _parseTimestampMs(json['updatedAt']),
+      lastSeenAt: json['lastSeenAt'] == null
+          ? 0
+          : _parseTimestampMs(json['lastSeenAt']),
+      notificationReadiness: json['notificationReadiness'] as bool? ?? false,
+      exactAlarmReadiness: json['exactAlarmReadiness'] as bool? ?? false,
+      selectedSoundMode:
+          SoundMode.fromString(json['selectedSoundMode'] as String?),
+      fcmTokens: (json['fcmTokens'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'uid': uid,
+        'sectorName': sectorName,
+        'normalizedSectorName': normalizedSectorName,
+        'joinedAt': joinedAt,
+        'updatedAt': updatedAt,
+        'lastSeenAt': lastSeenAt,
+        'notificationReadiness': notificationReadiness,
+        'exactAlarmReadiness': exactAlarmReadiness,
+        'selectedSoundMode': selectedSoundMode.toStorageString(),
+        'fcmTokens': fcmTokens,
+      };
+}

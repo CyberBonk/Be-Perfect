@@ -1,0 +1,79 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+enum RoomState { lobby, active, completed, closed }
+
+class Room {
+  final String roomId;
+  final String ownerUid;
+  final RoomState state;
+
+  /// Null means the room accepts any number of participant sectors.
+  final int? sectorCapacity;
+  final String? activeRunId;
+  final int revision;
+  final int createdAt;
+  final int updatedAt;
+  final int? closedAt;
+
+  const Room({
+    required this.roomId,
+    required this.ownerUid,
+    required this.state,
+    required this.sectorCapacity,
+    this.activeRunId,
+    required this.revision,
+    required this.createdAt,
+    required this.updatedAt,
+    this.closedAt,
+  });
+
+  static int _parseTimestampMs(dynamic val) {
+    if (val is Timestamp) {
+      return val.millisecondsSinceEpoch;
+    } else if (val is num) {
+      return val.toInt();
+    }
+    return DateTime.now().millisecondsSinceEpoch;
+  }
+
+  factory Room.fromJson(Map<String, dynamic> json) {
+    return Room(
+      roomId: json['roomId'] as String? ?? '',
+      ownerUid: json['ownerUid'] as String? ?? '',
+      state: _parseState(json['state'] as String?),
+      sectorCapacity: (json['sectorCapacity'] as num?)?.toInt(),
+      activeRunId: json['activeRunId'] as String?,
+      revision: (json['revision'] as num?)?.toInt() ?? 1,
+      createdAt: _parseTimestampMs(json['createdAt']),
+      updatedAt: _parseTimestampMs(json['updatedAt']),
+      closedAt:
+          json['closedAt'] != null ? _parseTimestampMs(json['closedAt']) : null,
+    );
+  }
+
+  static RoomState _parseState(String? state) {
+    switch (state) {
+      case 'active':
+        return RoomState.active;
+      case 'completed':
+        return RoomState.completed;
+      case 'closed':
+        return RoomState.closed;
+      case 'lobby':
+      default:
+        return RoomState.lobby;
+    }
+  }
+
+  Map<String, dynamic> toJson() => {
+        'roomId': roomId,
+        'ownerUid': ownerUid,
+        'state': state.name,
+        'sectorCapacity': sectorCapacity,
+        'activeRunId': activeRunId,
+        'revision': revision,
+        'createdAt': createdAt,
+        'updatedAt': updatedAt,
+        'closedAt': closedAt,
+      };
+}

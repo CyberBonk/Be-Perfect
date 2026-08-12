@@ -1,0 +1,246 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/firebase/firebase_providers.dart';
+import '../../core/firebase/server_clock.dart';
+import '../../core/localization/app_locale.dart';
+import '../../core/models/room_model.dart';
+import '../../core/timer/schedule_engine.dart';
+
+import 'timer_display_widget.dart';
+
+class SectorTimerPage extends ConsumerStatefulWidget {
+  const SectorTimerPage({super.key});
+
+  @override
+  ConsumerState<SectorTimerPage> createState() => _SectorTimerPageState();
+}
+
+class _SectorTimerPageState extends ConsumerState<SectorTimerPage> {
+  Timer? _localTicker;
+  int _nowMs = ServerClock().nowMs();
+  TimerDerivedState? _lastDerivedState;
+  int? _activeAlarmRound;
+  String? _checkedActiveAlarmRunId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Repaint more frequently than once per second so both devices cross a
+    // shared server-timestamp boundary without a whole-second visual lag.
+    _localTicker = Timer.periodic(const Duration(milliseconds: 250), (_) {
+      if (!mounted) return;
+
+      final nowMs = ServerClock().nowMs();
+      final run = ref.read(activeRunStreamProvider).asData?.value;
+      int? endedRound;
+
+      if (run != null) {
+        final derived = ScheduleEngine.deriveState(run, nowMs);
+        final previous = _lastDerivedState;
+        if (previous?.state == DerivedPhaseState.runningRound &&
+            (derived.state != DerivedPhaseState.runningRound ||
+                derived.currentRoundIndex > previous!.currentRoundIndex)) {
+          endedRound = previous!.currentRoundIndex;
+        }
+        _lastDerivedState = derived;
+      } else {
+        _lastDerivedState = null;
+        _activeAlarmRound = null;
+        _checkedActiveAlarmRunId = null;
+      }
+
+      setState(() {
+        _nowMs = nowMs;
+        if (endedRound != null) _activeAlarmRound = endedRound;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _localTicker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final roomAsync = ref.watch(roomStreamProvider);
+    final activeRunAsync = ref.watch(activeRunStreamProvider);
+    final connectionAsync = ref.watch(firebaseConnectionProvider);
+    final memberAsync = ref.watch(currentMemberStreamProvider);
+    return roomAsync.when(
+      data: (room) {
+        if (room == null) {
+          return Center(
+            child: Text(
+              context.tr(
+                'Room closed or not found.',
+                'الغرفة مغلقة أو غير موجودة.',
+              ),
+            ),
+          );
+        }
+
+        if (room.state == RoomState.closed) {
+          return Center(
+            child: Text(
+              context.tr(
+                'This room has been closed by the Controller.',
+                'أغلق المتحكّم هذه الغرفة.',
+              ),
+            ),
+          );
+        }
+
+        final heartbeatFresh = (() {
+          final seen = memberAsync.asData?.value?.lastSeenAt ?? 0;
+          return seen > 0 &&
+              DateTime.now().millisecondsSinceEpoch - seen < 45 * 1000;
+        })();
+        final isConnected =
+            connectionAsync.asData?.value == true || heartbeatFresh;
+        final isOffline =
+            connectionAsync.asData?.value == false || connectionAsync.hasError;
+
+        return Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              color: isOffline
+                  ? theme.colorScheme.errorContainer
+                  : theme.colorScheme.surfaceContainerHigh,
+              child: Row(
+                children: [
+                  Icon(
+                    isConnected
+                        ? Icons.cloud_done_outlined
+                        : Icons.cloud_off_outlined,
+                    size: 16,
+                    color: isOffline
+                        ? theme.colorScheme.onErrorContainer
+                        : theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      isConnected
+                          ? context.tr(
+                              'Connected — Live sync active (Rev ${room.revision})',
+                              'متصل — المزامنة المباشرة فعّالة (رقم المراجعة ${room.revision})',
+                            )
+                          : context.tr(
+                              'Offline — Live sync unavailable. Changes will not sync until connection returns.',
+                              'غير متصل — المزامنة المباشرة غير متاحة. لن تُزامن التغييرات حتى عودة الاتصال.',
+                            ),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: isOffline
+                            ? theme.colorScheme.onErrorContainer
+                            : theme.colorScheme.onSurfaceVariant,
+                        fontWeight:
+                            isOffline ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: activeRunAsync.when(
+                    data: (run) {
+                      if (run == null) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.hourglass_empty,
+                              size: 64,
+                              color: theme.colorScheme.primary
+                                  .withValues(alpha: 0.5),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              context.tr(
+                                'Waiting for Controller to start run...',
+                                'في انتظار المتحكّم لبدء الجولات...',
+                              ),
+                              style: theme.textTheme.titleMedium,
+                            ),
+                          ],
+                        );
+                      }
+
+                      final derivedState =
+                          ScheduleEngine.deriveState(run, _nowMs);
+
+                      if (_checkedActiveAlarmRunId != run.runId) {
+                        _checkedActiveAlarmRunId = run.runId;
+                        Future.microtask(() async {
+                          final activeRound = await ref
+                              .read(notificationServiceProvider)
+                              .findActiveRoundAlarm(
+                                room.roomId,
+                                run.roundCount,
+                              );
+                          if (mounted && activeRound != null) {
+                            setState(() => _activeAlarmRound = activeRound);
+                          }
+                        });
+                      }
+
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TimerDisplayWidget(
+                            derivedState: derivedState,
+                            isOffline: isOffline,
+                          ),
+                          if (_activeAlarmRound != null) ...[
+                            const SizedBox(height: 16),
+                            FilledButton.icon(
+                              onPressed: () async {
+                                final round = _activeAlarmRound!;
+                                await ref
+                                    .read(notificationServiceProvider)
+                                    .dismissRoundAlarm(room.roomId, round);
+                                if (mounted) {
+                                  setState(() => _activeAlarmRound = null);
+                                }
+                              },
+                              icon: const Icon(Icons.alarm_off),
+                              label: Text(
+                                context.tr(
+                                  'Dismiss Round $_activeAlarmRound Alarm',
+                                  'إيقاف تنبيه الجولة $_activeAlarmRound',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
+                    loading: () => const CircularProgressIndicator(),
+                    error: (err, stack) => Text(
+                      '${context.tr('Error loading run', 'تعذر تحميل الجولات')}: $err',
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(
+        child: Text(
+          '${context.tr('Error loading room', 'تعذر تحميل الغرفة')}: $err',
+        ),
+      ),
+    );
+  }
+}

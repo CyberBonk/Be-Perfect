@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "508513156367",
+    "project_id": "be-perfect-firebase",
+    "firebase_url": "https://be-perfect-firebase-default-rtdb.europe-west1.firebasedatabase.app",
+    "storage_bucket": "be-perfect-firebase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:508513156367:android:ada9292107de12c6c0d27a",
+        "android_client_info": {
+          "package_name": "com.cyberbonk.beperfect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANqdqwTEXl-qU4jtlxlIuZYjjr0_-TnUQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

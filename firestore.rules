@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isMember(roomId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/rooms/$(roomId)/members/$(request.auth.uid));
+    }
+
+    function isOwner(roomId) {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/rooms/$(roomId)).data.ownerUid == request.auth.uid;
+    }
+
+    function isRoomOpen(roomId) {
+      return get(/databases/$(database)/documents/rooms/$(roomId)).data.state != "closed";
+    }
+
+    // Short PIN room code mapping
+    match /roomCodes/{code} {
+      // The fallback creator may publish only a mapping for a room it owns;
+      // existing mappings remain immutable to prevent PIN hijacking.
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.roomId is string &&
+        getAfter(/databases/$(database)/documents/rooms/$(request.resource.data.roomId)).data.ownerUid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /rooms/{roomId} {
+      // A viewer must be able to inspect an open room after obtaining its PIN,
+      // before their member document exists. Existing members may also read
+      // the final closed state so they do not remain on a stale lobby screen.
+      allow read: if isAuthenticated() &&
+        (isOwner(roomId) || isMember(roomId) || resource.data.state != "closed");
+      allow create: if isAuthenticated() && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isAuthenticated() && isOwner(roomId);
+      allow delete: if false;
+
+      match /members/{memberUid} {
+        // Members may always read their own membership document so a deleted
+        // document produces a visible removal event on their device.
+        allow read: if isAuthenticated() &&
+          (memberUid == request.auth.uid || isOwner(roomId) ||
+            (isMember(roomId) && isRoomOpen(roomId)));
+        allow create, update: if isAuthenticated() && (memberUid == request.auth.uid || isOwner(roomId));
+        allow delete: if isAuthenticated() && (memberUid == request.auth.uid || isOwner(roomId));
+      }
+
+      match /runs/{runId} {
+        allow read: if isAuthenticated() && (isOwner(roomId) || (isMember(roomId) && isRoomOpen(roomId)));
+        allow create, update: if isAuthenticated() && isOwner(roomId);
+        allow delete: if false;
+      }
+
+      match /feed/{eventId} {
+        allow read: if isAuthenticated() && (isOwner(roomId) || (isMember(roomId) && isRoomOpen(roomId)));
+        allow create: if isAuthenticated() && (isOwner(roomId) || isMember(roomId));
+        allow update, delete: if false;
+      }
+    }
+
+    match /notificationOutbox/{eventId} {
+      allow read, write: if false;
+    }
+  }
+}
