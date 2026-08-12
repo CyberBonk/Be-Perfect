@@ -14,7 +14,6 @@ class AboutPage extends StatefulWidget {
 class _AboutPageState extends State<AboutPage> {
   String _appName = 'Be Perfect';
   String _version = '2.0.0';
-  String _buildNumber = '2';
 
   @override
   void initState() {
@@ -28,7 +27,6 @@ class _AboutPageState extends State<AboutPage> {
       setState(() {
         _appName = info.appName.isNotEmpty ? info.appName : 'Be Perfect';
         _version = info.version;
-        _buildNumber = info.buildNumber;
       });
     } catch (_) {}
   }
@@ -69,8 +67,8 @@ class _AboutPageState extends State<AboutPage> {
               const SizedBox(height: 4),
               Text(
                 context.tr(
-                  'Version $_version (Build $_buildNumber)',
-                  'الإصدار $_version (البنية $_buildNumber)',
+                  'Version $_version',
+                  'الإصدار $_version',
                 ),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,

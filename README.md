@@ -263,7 +263,7 @@ The Settings destination includes an **About** page containing:
 
 > Developed for Be Perfect by [CyberBonk](https://github.com/CyberBonk)
 
-The developer name opens the CyberBonk GitHub profile using the device's external browser. The page should also show the application name, installed version, and build number using the active Material 3 theme.
+The developer name opens the CyberBonk GitHub profile using the device's external browser. The page also shows the application name and installed version using the active Material 3 theme.
 
 ## Announcements and Notifications
 
