@@ -9,14 +9,15 @@ import '../../core/timer/schedule_engine.dart';
 
 import 'timer_display_widget.dart';
 
-class SectorTimerPage extends ConsumerStatefulWidget {
-  const SectorTimerPage({super.key});
+class ParticipantTimerPage extends ConsumerStatefulWidget {
+  const ParticipantTimerPage({super.key});
 
   @override
-  ConsumerState<SectorTimerPage> createState() => _SectorTimerPageState();
+  ConsumerState<ParticipantTimerPage> createState() =>
+      _ParticipantTimerPageState();
 }
 
-class _SectorTimerPageState extends ConsumerState<SectorTimerPage> {
+class _ParticipantTimerPageState extends ConsumerState<ParticipantTimerPage> {
   Timer? _localTicker;
   int _nowMs = ServerClock().nowMs();
   TimerDerivedState? _lastDerivedState;

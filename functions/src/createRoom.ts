@@ -18,7 +18,7 @@ export async function handleCreateRoom(
   const capacity = request.data?.sectorCapacity ?? null;
 
   if (capacity !== null && (!Number.isInteger(capacity) || capacity < 1)) {
-    throw new HttpsError('invalid-argument', 'Sector capacity must be a positive whole number when provided.');
+    throw new HttpsError('invalid-argument', 'Participant capacity must be a positive whole number when provided.');
   }
 
   const db = admin.firestore();

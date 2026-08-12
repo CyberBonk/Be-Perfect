@@ -7,7 +7,7 @@ class Room {
   final String ownerUid;
   final RoomState state;
 
-  /// Null means the room accepts any number of participant sectors.
+  /// Null means the room accepts any number of participants.
   final int? sectorCapacity;
   final String? activeRunId;
   final int revision;

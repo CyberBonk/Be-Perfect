@@ -36,7 +36,7 @@ class Member {
   }
 
   factory Member.fromJson(Map<String, dynamic> json) {
-    final name = json['sectorName'] as String? ?? 'Sector';
+    final name = json['sectorName'] as String? ?? 'Participant';
     return Member(
       uid: json['uid'] as String? ?? '',
       sectorName: name,

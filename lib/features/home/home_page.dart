@@ -122,7 +122,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               Text(
                 context.tr(
                   'Church Event Timer & Round Coordinator',
-              'مؤقت ومنسّق جولات للفعاليات الكنسية',
+                  'مؤقت ومنسّق جولات للفعاليات الكنسية',
                 ),
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -164,7 +164,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Vibrant High-Contrast Join Room Button
+              // Participant entry button
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -181,7 +181,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   onPressed: () => _showJoinRoomDialog(context),
                   icon: const Icon(Icons.login, size: 24),
                   label: Text(
-                    context.tr('Join Room', 'الانضمام إلى غرفة'),
+                    context.tr('Join as Participant', 'الانضمام كمشارك'),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

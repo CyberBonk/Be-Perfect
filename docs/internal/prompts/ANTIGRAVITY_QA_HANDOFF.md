@@ -20,10 +20,10 @@ Updated: 2026-07-28
 3. Add a visible temporary logo placeholder reading **Insert Be Perfect logo
    here**. Do not manufacture a final logo; artwork will be supplied later.
 4. Remove verbose role suffixes and jargon from user-facing copy:
-   - `Create Room (G-man)` becomes `Create Room`.
-   - `Join Room (Sector)` becomes `Join Room`.
-   - `G-man Dashboard` becomes `Controller`.
-   - `Sector View` becomes `Timer` or the participant's chosen display name.
+   - `Create Room (controller)` becomes `Create Room`.
+   - `Join Room (Participant)` becomes `Join Room`.
+   - `controller Dashboard` becomes `Controller`.
+   - `Participant View` becomes `Timer` or the participant's chosen display name.
    - Use `Controller` and `Participant` only where a role must be explained.
 5. Internal class names and Firebase schema fields may remain unchanged to avoid
    a risky cosmetic refactor.

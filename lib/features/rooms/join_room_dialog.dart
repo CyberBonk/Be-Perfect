@@ -42,8 +42,8 @@ class _JoinRoomDialogState extends ConsumerState<JoinRoomDialog> {
     if (sectorName.isEmpty || sectorName.length > 30) {
       setState(() {
         _errorMessage = context.tr(
-          'Sector display name must be between 1 and 30 characters.',
-          'يجب أن يكون اسم القطاع بين حرف واحد و30 حرفًا.',
+          'Participant name must be between 1 and 30 characters.',
+          'يجب أن يكون اسم المشارك بين حرف واحد و30 حرفًا.',
         );
       });
       return;
@@ -100,7 +100,7 @@ class _JoinRoomDialogState extends ConsumerState<JoinRoomDialog> {
     final theme = Theme.of(context);
 
     return AlertDialog(
-      title: Text(context.tr('Join Sector Room', 'الانضمام إلى غرفة القطاع')),
+      title: Text(context.tr('Join as Participant', 'الانضمام كمشارك')),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -127,11 +127,12 @@ class _JoinRoomDialogState extends ConsumerState<JoinRoomDialog> {
             ),
             const SizedBox(height: 12),
             TextField(
-              key: const ValueKey('sector-name-field'),
+              key: const ValueKey('participant-name-field'),
               controller: _sectorNameController,
               decoration: InputDecoration(
-                labelText: context.tr('Sector Display Name', 'اسم القطاع'),
-                hintText: context.tr('e.g. Sector Alpha', 'مثال: قطاع ألفا'),
+                labelText: context.tr('Participant Name', 'اسم المشارك'),
+                hintText:
+                    context.tr('e.g. Participant Alpha', 'مثال: المشارك ألفا'),
                 border: const OutlineInputBorder(),
               ),
             ),

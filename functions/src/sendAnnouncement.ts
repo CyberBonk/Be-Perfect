@@ -46,7 +46,7 @@ export async function handleSendAnnouncement(
       eventId,
       type: 'announcement',
       senderUid: uid,
-      title: 'G-man Announcement',
+      title: 'Controller Announcement',
       body: trimmedBody,
       notifyDevices,
       timestamp: now,

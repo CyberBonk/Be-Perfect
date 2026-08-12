@@ -11,18 +11,16 @@
 The installed Android application name is **Timer Be Perfect**. The underlying
 project and event may still be referred to as **Be Perfect**.
 
-User-facing copy should stay simple and role-neutral:
+User-facing copy uses two clear roles:
 
-- **Create Room** instead of “Create Room (G-man)”.
-- **Join Room** instead of “Join Room (Sector)”.
-- **Controller** when a role must be named.
-- **Participant** when a joined device must be named.
+- **Controller** creates the room and controls the event.
+- **Participant** joins the room and follows the event.
 
 Internal source identifiers and Firebase fields may retain their current names
 until a deliberate schema refactor is justified. They must not leak into normal
 user-facing labels.
 
-Be Perfect is an Android event-coordination application for church student activities. It synchronizes timed rounds across sector phones, gives each event leader live control, and continues operating from the last confirmed schedule when internet access is interrupted.
+Be Perfect is an Android event-coordination application for church student activities. It synchronizes timed rounds across participant devices, gives the controller live control, and continues from the last confirmed schedule when internet access is interrupted.
 
 The project is developed by **CyberBonk**.
 
@@ -65,64 +63,61 @@ checksums, symbols policy, and build commands.
 
 ## Core Idea
 
-Be Perfect uses a room model:
+Be Perfect uses independent rooms. Any installation can create one, become its
+controller, and share a six-digit PIN or QR code. Participants join that room;
+joining never grants controller authority. Multiple rooms can run at once.
 
 1. Any installed device can choose **Create room**.
-2. That device becomes the **G-man** for the room it created.
+2. That device becomes the **controller** for the room it created.
 3. The app generates a six-digit PIN and a QR code.
-4. Sector devices join that room by scanning the QR code or entering the PIN.
-5. The G-man configures and controls the event for the devices in that room.
-
-There is no developer-assigned list of masters and no special master build. The developer owns and maintains the Firebase project, but any normal app installation may create a room.
-
-Multiple G-men and rooms may exist simultaneously. Each room is independent and has its own members, timer, announcements, and event state. In version 1, each room has one owning G-man. Joining a room never grants G-man privileges.
+4. Participants join by scanning the QR code or entering the PIN.
+5. The controller configures and controls the event for the participants in that room.
 
 ## Roles
 
-### G-man
+### Controller
 
-The G-man is the device that creates a room. It can:
+The device that creates a room can:
 
-- Accept any number of participant sectors.
+- Accept any number of participants.
 - Configure the number of rounds.
 - Configure the standard round duration.
 - Configure an optional cooldown between rounds.
-- See which sectors joined.
-- See sector readiness and online status.
+- See which participants joined.
+- See participant readiness and online status.
 - Start, pause, resume, or end an event.
 - Adjust the active round using `-5`, `-1`, `+1`, and `+5` minute controls.
 - End the current round early.
 - Send text announcements.
-- Remove or rename joined sectors.
+- Remove or rename joined participants.
 - Start another event without forcing everyone to leave the room.
 - Close the room.
 
-G-man authority belongs only to the room created by that device. The creator does not control other G-men or their rooms.
+Controller authority belongs only to the room created by that device. The creator does not control other controllers or their rooms.
 
-### Sector
+### Participant
 
-A sector device:
+A participant device joins through QR/PIN and:
 
-- Joins a particular room through its QR code or six-digit PIN.
-- Enters a unique custom sector name.
+- Enters a unique participant name.
 - Sees the synchronized timer and round progress.
 - Sees the current timer in an ongoing Android notification, including on the lock screen where device settings permit it.
-- Receives round alarms and G-man announcements.
+- Receives round alarms and controller announcements.
 - May send a message to the shared announcement feed.
 - Sees a warning when its state may be stale because it is offline.
 - Cannot modify the schedule.
-- Remains in the room after an event finishes until it leaves or the G-man closes the room.
+- Remains in the room after an event finishes until it leaves or the controller closes the room.
 
 ## Default Event Configuration
 
 | Setting | Default |
 | --- | ---: |
-| Sector capacity | Unlimited |
+| Participant capacity | Unlimited |
 | Rounds | 6 |
 | Round duration | 20 minutes |
 | Cooldown | 0 seconds |
 
-Rooms accept any number of participant sectors. The legacy `sectorCapacity` field remains readable for older room documents, but it is no longer enforced.
+Rooms accept any number of participants. The legacy `sectorCapacity` field remains readable for older documents, but is no longer enforced.
 
 ## Event Lifecycle
 
@@ -145,7 +140,7 @@ Lobby -> Starting -> Running -> Paused -> Running -> Completed
 
 When a non-final round reaches zero:
 
-1. Every prepared sector phone raises its locally scheduled alarm.
+1. Every prepared participant phone raises its locally scheduled alarm.
 2. The UI marks the round as complete.
 3. The configured cooldown runs.
 4. The next full-duration round starts automatically.
@@ -159,13 +154,13 @@ When the last round ends:
 - The final alarm rings.
 - The event becomes **Completed**.
 - Devices stay inside the room.
-- The G-man may configure and start another event.
+- The controller may configure and start another event.
 
-When starting another event, the G-man chooses whether to keep the previous notification history with event dividers or show a fresh feed for the new event.
+When starting another event, the controller chooses whether to keep the previous notification history with event dividers or show a fresh feed for the new event.
 
 ### Active-round adjustments
 
-The G-man can adjust only the currently active round:
+The controller can adjust only the currently active round:
 
 - `-5 minutes`
 - `-1 minute`
@@ -180,15 +175,15 @@ The app uses Material 3, also known as Material You.
 
 ### Visual walkthrough
 
-The main interaction is intentionally short: create or join a room, then use the
-role-specific timer surface. The same room keeps the controller and participant
-devices synchronized while announcements remain available from the bottom bar.
+The main interaction is short: the controller creates a room, participants join,
+and every device follows the same timer. The controller sees presence and sends
+commands; participants receive the confirmed schedule, alarms, and announcements.
 
 ```mermaid
 flowchart LR
     A[Home] --> B{Choose an action}
     B -->|Create Room| C[Controller dashboard]
-    B -->|Join Room or scan QR| D[Participant timer]
+    B -->|Join as Participant or scan QR| D[Participant timer]
     C --> E[Configure rounds and duration]
     E --> F[Start and control event]
     D --> G[Follow synchronized timer]
@@ -200,14 +195,19 @@ flowchart LR
 
 <p align="center">
   <img src="docs/screenshots/home-arabic.png" alt="Arabic home screen with Create Room and Join Room actions" width="220">
-  <img src="docs/screenshots/join-room.png" alt="Join Room dialog with PIN and sector name fields" width="220">
+  <img src="docs/screenshots/join-room.png" alt="Join as Participant dialog with room PIN and participant name fields" width="220">
   <img src="docs/screenshots/controller-dashboard.png" alt="Controller dashboard showing room QR code and event configuration" width="220">
   <img src="docs/screenshots/settings.png" alt="Settings screen with color, language, sound, and Android readiness controls" width="220">
 </p>
 
-The captures above show the current device-tested flow. The controller dashboard
-shares the room through a QR code or six-digit PIN; participants then receive the
-same event state and announcements without gaining controller privileges.
+<p align="center">
+  <img src="docs/diagrams/controller-participant-flow.svg" alt="Controller and participant event flow" width="760">
+</p>
+
+The screenshots and system visual show the tested flow. The controller shares a
+room through a QR code or six-digit PIN; participants then receive the same event
+state without gaining controller privileges. The phone captures focus on room
+setup and readiness; the flow visual shows the controller-to-participant handoff.
 
 <details>
 <summary>Destructive room action</summary>
@@ -220,12 +220,12 @@ requiring confirmation.
 </p>
 </details>
 
-### Sector navigation
+### Participant navigation
 
 - **Timer**
 - **Announcements**
 
-### G-man navigation
+### Controller navigation
 
 - **Dashboard**
 - **Announcements**
@@ -235,7 +235,7 @@ The bottom component is a Material 3 `NavigationBar`. A `NavigationRail` may be 
 
 ### Timer screen
 
-The sector timer screen contains:
+The participant timer screen contains:
 
 - Round progress at the top, such as `2 / 6`.
 - A large timer in the center.
@@ -243,19 +243,19 @@ The sector timer screen contains:
 - A persistent offline warning when the latest server state cannot be confirmed.
 - A shortcut to the announcement feed.
 
-Round progress uses the configured round count, not the sector count.
+Round progress uses the configured round count, not the participant count.
 
-### G-man dashboard
+### Controller dashboard
 
 The dashboard contains:
 
 - Room PIN and QR code.
 - Event configuration.
 - Timer and control buttons.
-- Joined-sector roster.
+- Joined-participant roster.
 - Online/offline and last-seen state.
 - Notification and exact-alarm readiness.
-- A warning before starting if sector phones are not ready.
+- A warning before starting if participant phones are not ready.
 
 ### About page
 
@@ -269,12 +269,12 @@ The developer name opens the CyberBonk GitHub profile using the device's externa
 
 The announcement feed is shared:
 
-- The G-man may send text messages.
+- The controller may send text messages.
 - Participant devices may send text messages identified by participant name.
 - Important control changes create system entries.
-- The G-man sees the same feed as the sectors.
+- The controller sees the same feed as the participants.
 
-The **Notify devices** option is selected by default for G-man messages and state changes. Turning it off suppresses the push notification but does not suppress synchronization or the feed entry.
+The **Notify devices** option is selected by default for controller messages and state changes. Turning it off suppresses the push notification but does not suppress synchronization or the feed entry.
 
 Round-completion alarms are core timer behavior and are not disabled by this option.
 
@@ -282,7 +282,7 @@ Firebase Cloud Messaging is an alert and wake-up mechanism, not the authoritativ
 
 ## Ongoing Timer Notification
 
-Every G-man and joined sector device displays one ongoing Android notification while an event is starting, running, paused, or in cooldown. The user does not need to keep the Flutter interface open.
+Every controller and joined participant device displays one ongoing Android notification while an event is starting, running, paused, or in cooldown. The user does not need to keep the Flutter interface open.
 
 The notification contains:
 
@@ -361,7 +361,7 @@ The application must not download the essential alarm sound at runtime. Bundling
 The ongoing timer notification remains silent. The bundled sound plays only for:
 
 - Normal round completion.
-- A round ended early by the G-man.
+- A round ended early by the controller.
 - Final event completion.
 - The sound-test action in Settings.
 
@@ -409,7 +409,7 @@ This design minimizes battery use, Firestore reads, and Firebase cost.
 
 ### Schedule revisions
 
-Every accepted G-man command increments the room schedule revision. Clients:
+Every accepted controller command increments the room schedule revision. Clients:
 
 - Ignore older revisions.
 - Deduplicate repeated event IDs.
@@ -420,17 +420,17 @@ Every accepted G-man command increments the room schedule revision. Clients:
 
 All devices are expected to have internet access, but temporary loss must not destroy the active event.
 
-### Sector offline
+### Participant offline
 
 - Continue the last confirmed schedule locally.
 - Continue round and cooldown transitions.
 - Raise already scheduled local alarms.
-- Show that recent G-man changes may be missing.
+- Show that recent controller changes may be missing.
 - Reconcile to the newest schedule revision when Firebase reconnects.
 
-An offline sector cannot receive a change that has not reached it. The G-man dashboard therefore shows which sectors are offline before a schedule change is made.
+An offline participant cannot receive a change that has not reached it. The controller dashboard therefore shows which participants are offline before a schedule change is made.
 
-### G-man offline
+### Controller offline
 
 - The confirmed schedule continues locally.
 - Shared controls are disabled.
@@ -459,7 +459,7 @@ rooms/{roomId}/runs/{runId}
 rooms/{roomId}/feed/{eventId}
 ```
 
-`roomCodes` is a server-only mapping from the short invitation code to an opaque room ID. Knowing a valid PIN allows a device to request membership, but it does not grant direct database access or G-man authority.
+`roomCodes` is a server-only mapping from the short invitation code to an opaque room ID. Knowing a valid PIN allows a device to request membership, but it does not grant direct database access or controller authority.
 
 Realtime Database stores only the minimal mirrored membership metadata and active connection nodes required for presence rules.
 
@@ -487,7 +487,7 @@ Every mutation includes:
 - Unique client command ID.
 - Expected schedule revision.
 
-Server transactions enforce ownership, unique sector names, valid state transitions, and idempotency. Participant sectors are not capped.
+Server transactions enforce ownership, unique participant names, valid state transitions, and idempotency. Participant count is not capped.
 
 ### Multi-room behavior
 
@@ -497,7 +497,7 @@ Server transactions enforce ownership, unique sector names, valid state transiti
 - Commands always include and validate the target room ID.
 - FCM tokens are associated with memberships, not a global event topic.
 - Announcements and presence never leak between rooms.
-- Simultaneous rooms do not share schedules or sector lists.
+- Simultaneous rooms do not share schedules or participant lists.
 
 ## Android Notifications and Alarms
 
@@ -566,19 +566,19 @@ Settings row. Light and dark appearances derive from the selected scheme.
 ### Firebase Emulator tests
 
 - Any device can create its own room.
-- Separate G-men cannot control each other's rooms.
-- A join PIN never grants G-man privileges.
+- Separate controllers cannot control each other's rooms.
+- A join PIN never grants controller privileges.
 - Outsiders cannot read room data.
 - Members cannot modify schedules.
-- Simultaneous joins can add any number of uniquely named participant sectors.
-- Sector-name uniqueness survives racing joins.
+- Simultaneous joins can add any number of uniquely named participants.
+- Participant-name uniqueness survives racing joins.
 - Duplicate command IDs are idempotent.
 - Stale revisions are rejected.
 - Notifications and feed events do not cross rooms.
 
 ### Multi-device tests
 
-Use at least one G-man and six sector clients, then also run two independent rooms simultaneously.
+Use at least one controller and six participant clients, then also run two independent rooms simultaneously.
 
 Test:
 
@@ -593,7 +593,7 @@ Test:
 - Background and terminated clients.
 - Process restart and device reboot.
 - Client network loss and reconnection.
-- G-man network loss.
+- Controller network loss.
 - Delayed or duplicated FCM messages.
 - Missing or revoked permissions.
 - Pause during a round and cooldown.
@@ -637,9 +637,9 @@ This milestone does not include Google Play publication.
 ## Implementation Pipeline
 
 1. Scaffold Flutter, Firebase environments, Material 3, anonymous authentication, and emulator support.
-2. Implement multi-room creation, PIN/QR joining, sector membership, and presence.
+2. Implement multi-room creation, PIN/QR joining, participant membership, and presence.
 3. Implement the timestamped timer engine, cooldowns, offline cache, and local alarms.
-4. Implement G-man commands and revision handling.
+4. Implement controller commands and revision handling.
 5. Implement the one-way feed and FCM delivery.
 6. Add Firebase Security Rules and emulator tests.
 7. Run lifecycle, failure, and multi-room testing.
@@ -659,17 +659,17 @@ Avoid parallel agents editing the same files simultaneously.
 
 The following ideas are preserved for a later milestone:
 
-- Multiple co-G-men controlling the same room.
-- G-man recovery or ownership transfer.
+- Multiple co-controllers controlling the same room.
+- Controller recovery or ownership transfer.
 - Student accounts.
 - Student rating.
 - Team identities.
-- Tracking which team is currently at each sector.
-- Informing a sector which team will arrive next.
+- Tracking which team is currently at each participant location.
+- Informing a participant which team will arrive next.
 - Integration with the future rating and team-management application.
 - Public Google Play release.
 
-Sector, team, round, room, and event-run concepts must remain separate in the data model so these features can be added without rewriting the timer system.
+Participant, team, round, room, and event-run concepts must remain separate in the data model so these features can be added without rewriting the timer system.
 
 ## Current V2 Assumptions
 
@@ -677,11 +677,11 @@ Sector, team, round, room, and event-run concepts must remain separate in the da
 - Android 10 / API level 29 is the primary behavior and quality baseline.
 - Android 8.0 Oreo / API level 26 is the intended minimum when it passes the same acceptance tests without a degraded compatibility implementation.
 - English and Arabic, defaulting to the device language until the user chooses.
-- One owning G-man per room.
+- One owning controller per room.
 - Any app installation can create a room.
-- Multiple independent G-men and rooms may run concurrently.
-- G-man ownership remains on the creating installation.
+- Multiple independent controllers and rooms may run concurrently.
+- Controller ownership remains on the creating installation.
 - Clearing that installation's app data loses its anonymous identity and room control.
-- All shared G-man commands require confirmed internet access.
+- All shared controller commands require confirmed internet access.
 - Temporary client disconnection is tolerated after the schedule has been cached.
 - The previous application template is optional visual inspiration and is not an architectural dependency.

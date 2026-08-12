@@ -12,8 +12,8 @@ import '../core/models/room_model.dart';
 import '../core/models/run_model.dart';
 import '../core/models/sound_mode.dart';
 import '../features/home/home_page.dart';
-import '../features/timer/gman_dashboard_page.dart';
-import '../features/timer/sector_timer_page.dart';
+import '../features/timer/controller_dashboard_page.dart';
+import '../features/timer/participant_timer_page.dart';
 import '../features/announcements/announcements_page.dart';
 import '../features/settings/settings_page.dart';
 import '../features/settings/about_page.dart';
@@ -331,7 +331,7 @@ class _NavigationHostPageState extends ConsumerState<NavigationHostPage> {
 
     if (isController) {
       final pages = [
-        const GmanDashboardPage(),
+        const ControllerDashboardPage(),
         const AnnouncementsPage(isController: true),
       ];
 
@@ -386,14 +386,14 @@ class _NavigationHostPageState extends ConsumerState<NavigationHostPage> {
       );
     } else {
       final pages = [
-        const SectorTimerPage(),
+        const ParticipantTimerPage(),
         const AnnouncementsPage(isController: false),
       ];
 
       return Scaffold(
         appBar: AppBar(
           title: Text(_currentIndex == 0
-              ? '${context.tr('Participant', 'المشارك')} (${userSectorName ?? context.tr('Sector', 'القطاع')})'
+              ? '${context.tr('Participant', 'المشارك')} (${userSectorName ?? context.tr('Participant', 'المشارك')})'
               : context.tr('Announcements', 'التنويهات')),
           leading: IconButton(
             icon: const Icon(Icons.settings_outlined),

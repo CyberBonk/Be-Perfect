@@ -12,14 +12,16 @@ import '../../core/models/run_model.dart';
 import '../../core/timer/schedule_engine.dart';
 import 'timer_display_widget.dart';
 
-class GmanDashboardPage extends ConsumerStatefulWidget {
-  const GmanDashboardPage({super.key});
+class ControllerDashboardPage extends ConsumerStatefulWidget {
+  const ControllerDashboardPage({super.key});
 
   @override
-  ConsumerState<GmanDashboardPage> createState() => _GmanDashboardPageState();
+  ConsumerState<ControllerDashboardPage> createState() =>
+      _ControllerDashboardPageState();
 }
 
-class _GmanDashboardPageState extends ConsumerState<GmanDashboardPage> {
+class _ControllerDashboardPageState
+    extends ConsumerState<ControllerDashboardPage> {
   int _rounds = 6;
   int _durationMinutes = 20;
   int _cooldownSeconds = 0;
@@ -197,12 +199,13 @@ class _GmanDashboardPageState extends ConsumerState<GmanDashboardPage> {
         context: context,
         builder: (context) => AlertDialog(
           title: Text(
-            context.tr('Sector Readiness Warning', 'تحذير جاهزية القطاعات'),
+            context.tr(
+                'Participant Readiness Warning', 'تحذير جاهزية المشاركين'),
           ),
           content: Text(
             context.tr(
-              '${unreadyMembers.length} joined sector(s) do not have full notification or exact alarm readiness.\n\nAre you sure you want to start the event run?',
-              '${unreadyMembers.length} من القطاعات المنضمة ليست جاهزة بالكامل للإشعارات أو التنبيهات الدقيقة.\n\nهل تريد بدء الجولات؟',
+              '${unreadyMembers.length} joined participant(s) do not have full notification or exact alarm readiness.\n\nAre you sure you want to start the event run?',
+              '${unreadyMembers.length} من المشاركين المنضمين ليست أجهزتهم جاهزة بالكامل للإشعارات أو التنبيهات الدقيقة.\n\nهل تريد بدء الجولات؟',
             ),
           ),
           actions: [
@@ -264,8 +267,8 @@ class _GmanDashboardPageState extends ConsumerState<GmanDashboardPage> {
           content: Text(
             isEndEvent
                 ? context.tr(
-                    'This will permanently end the event run for all sectors. Are you sure?',
-                    'سيؤدي ذلك إلى إنهاء الفعالية لجميع القطاعات. هل أنت متأكد؟',
+                    'This will permanently end the event run for all participants. Are you sure?',
+                    'سيؤدي ذلك إلى إنهاء الفعالية لجميع المشاركين. هل أنت متأكد؟',
                   )
                 : context.tr(
                     'This will immediately skip the current round. Are you sure?',
@@ -432,8 +435,8 @@ class _GmanDashboardPageState extends ConsumerState<GmanDashboardPage> {
                           const SizedBox(height: 4),
                           Text(
                             context.tr(
-                              'Sectors joined: ${members.length}',
-                              'القطاعات المنضمة: ${members.length}',
+                              'Participants joined: ${members.length}',
+                              'المشاركون المنضمون: ${members.length}',
                             ),
                             textAlign:
                                 isPortrait ? TextAlign.center : TextAlign.start,
@@ -785,8 +788,8 @@ class _GmanDashboardPageState extends ConsumerState<GmanDashboardPage> {
 
               Text(
                 context.tr(
-                  'Joined Sectors Roster (${members.length})',
-                  'قائمة القطاعات المنضمة (${members.length})',
+                  'Joined Participants (${members.length})',
+                  'قائمة المشاركين المنضمين (${members.length})',
                 ),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
@@ -798,8 +801,8 @@ class _GmanDashboardPageState extends ConsumerState<GmanDashboardPage> {
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   child: Text(
                     context.tr(
-                      'No sector devices have joined yet.',
-                      'لم تنضم أي أجهزة قطاعات حتى الآن.',
+                      'No participant devices have joined yet.',
+                      'لم تنضم أي أجهزة مشاركين حتى الآن.',
                     ),
                   ),
                 )

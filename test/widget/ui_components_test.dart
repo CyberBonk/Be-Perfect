@@ -48,9 +48,9 @@ void main() {
     await tester.pumpWidget(host(const HomePage()));
 
     expect(find.text('Create Room'), findsOneWidget);
-    await tester.tap(find.text('Join Room'));
+    await tester.tap(find.text('Join as Participant'));
     await tester.pumpAndSettle();
-    expect(find.text('Join Sector Room'), findsOneWidget);
+    expect(find.text('Join as Participant').last, findsOneWidget);
     expect(find.text('6-Digit Room PIN'), findsOneWidget);
 
     await tester.tap(find.text('Cancel'));

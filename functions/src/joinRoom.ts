@@ -18,7 +18,7 @@ export async function handleJoinRoom(
 
   const trimmedSectorName = (sectorName || '').trim();
   if (trimmedSectorName.length < 1 || trimmedSectorName.length > 30) {
-    throw new HttpsError('invalid-argument', 'Sector display name must be 1 to 30 visible characters.');
+    throw new HttpsError('invalid-argument', 'Participant name must be 1 to 30 visible characters.');
   }
   const normalizedSectorName = trimmedSectorName.toLowerCase().replace(/\s+/g, ' ');
 
@@ -53,12 +53,12 @@ export async function handleJoinRoom(
     const allMembersSnap = await tx.get(membersRef);
     const existingMembers = allMembersSnap.docs.map(d => d.data() as Member);
 
-    // Sector-name uniqueness (case-insensitive & whitespace normalized)
+    // Participant-name uniqueness (case-insensitive & whitespace normalized)
     const nameCollision = existingMembers.some(
       m => m.uid !== uid && m.normalizedSectorName === normalizedSectorName
     );
     if (nameCollision) {
-      throw new HttpsError('already-exists', `The sector name "${trimmedSectorName}" is already taken in this room.`);
+      throw new HttpsError('already-exists', `The participant name "${trimmedSectorName}" is already taken in this room.`);
     }
 
     const existingMember = existingMembers.find(m => m.uid === uid);

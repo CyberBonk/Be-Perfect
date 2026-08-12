@@ -17,17 +17,17 @@ Build a production-oriented Android Flutter application for coordinating timed r
 
 One application supports two runtime roles:
 
-- **G-man:** a room controller.
-- **Sector:** a read-only participant/viewer.
+- **controller:** a room controller.
+- **Participant:** a read-only participant/viewer.
 
-Any installation can create a room and become that room's G-man. Other devices join that specific G-man through a QR code or a six-digit numeric PIN.
+Any installation can create a room and become that room's controller. Other devices join that specific controller through a QR code or a six-digit numeric PIN.
 
-Many independent G-men and rooms may exist concurrently. There is no developer-maintained master allowlist and no separate master APK. The Firebase project owner is not automatically a G-man.
+Many independent controllers and rooms may exist concurrently. There is no developer-maintained master allowlist and no separate master APK. The Firebase project owner is not automatically a controller.
 
 For V1:
 
 - One device/UID owns and controls each room.
-- A join PIN never grants G-man authority.
+- A join PIN never grants controller authority.
 - Clients are viewers and cannot change the schedule or send feed messages.
 - One installation works with one selected active room at a time in the UI.
 - The backend must isolate simultaneous rooms correctly.
@@ -96,24 +96,24 @@ Default room/run configuration:
 
 | Setting | Default |
 | --- | ---: |
-| Sector capacity | 6 |
+| Participant capacity | 6 |
 | Rounds | 6 |
 | Round duration | 20 minutes |
 | Cooldown | 0 seconds |
 
-Sector capacity and round count are independent values.
+Participant capacity and round count are independent values.
 
 Use sensible bounded validation:
 
-- Sector capacity: 1–30.
+- Participant capacity: 1–30.
 - Round count: 1–30.
 - Standard round duration: 1–180 whole minutes.
 - Cooldown: 0–600 whole seconds.
-- Sector display name: trimmed, 1–30 visible characters.
+- Participant display name: trimmed, 1–30 visible characters.
 - Announcement: trimmed, 1–500 visible characters.
 - Join code: exactly six numeric digits.
 
-Sector-name uniqueness is case-insensitive after trimming and whitespace normalization.
+Participant-name uniqueness is case-insensitive after trimming and whitespace normalization.
 
 ## 5. Room and Identity Model
 
@@ -142,22 +142,22 @@ Recommended QR payload:
 ### Joining
 
 - Allow PIN entry or QR scanning.
-- Ask the client for one unique custom sector name.
+- Ask the client for one unique custom Participant name.
 - `joinRoom` validates:
   - Authenticated UID.
   - Valid open room.
   - Available capacity.
-  - Unique normalized sector name.
+  - Unique normalized Participant name.
   - Idempotent rejoin by the same UID.
 - Successful joining creates Firestore membership and the minimal Realtime Database membership mirror needed for presence rules.
 - Joining does not expose `ownerUid` privileges.
 
 ### Ownership
 
-- Only `ownerUid` can issue G-man commands for that room.
+- Only `ownerUid` can issue controller commands for that room.
 - Another room owner has no access to this room unless explicitly joined.
 - Clearing app data loses the anonymous identity and therefore room control. Show this limitation before room creation.
-- Co-G-men, ownership recovery, and ownership transfer are explicitly out of scope.
+- Co-controllers, ownership recovery, and ownership transfer are explicitly out of scope.
 
 ### Room lifecycle
 
@@ -198,7 +198,7 @@ The backend owns schedule mutations. Clients render time locally from trusted ti
 ### Running
 
 - Progress displays `currentRound / totalRounds`.
-- Progress uses round count, never sector count.
+- Progress uses round count, never Participant count.
 - The server generates an explicit schedule of round and cooldown phases.
 - Each phase includes:
   - Stable phase ID.
@@ -242,7 +242,7 @@ At the final round boundary:
 
 ### Active-round adjustment
 
-The G-man receives exactly these controls:
+The controller receives exactly these controls:
 
 ```text
 -5 minutes
@@ -284,7 +284,7 @@ Clients:
 
 ## 7. Offline Contract
 
-### Sector offline
+### Participant offline
 
 - Continue the last confirmed schedule.
 - Continue local round and cooldown derivation.
@@ -298,7 +298,7 @@ Offline — timer continues, but recent changes may be missing.
 - Use Firestore snapshot metadata and Realtime Database connection state to distinguish cached data from confirmed server state.
 - On reconnect, load the newest revision, cancel obsolete alarms, and reconcile without duplicate alerts.
 
-### G-man offline
+### Controller offline
 
 - Continue displaying the last confirmed schedule.
 - Disable all shared mutation controls.
@@ -315,7 +315,7 @@ Offline — timer continues, but recent changes may be missing.
 
 Users do not need to keep the Flutter UI open.
 
-Every G-man and joined sector device displays one ongoing Android notification while a run is:
+Every controller and joined Participant device displays one ongoing Android notification while a run is:
 
 - Starting.
 - Running.
@@ -414,7 +414,7 @@ The final audio file has not yet been supplied. Do not fabricate or silently cla
 The bundled sound plays only for:
 
 - Natural round completion.
-- A round ended early by the G-man.
+- A round ended early by the controller.
 - Final event completion.
 - Settings sound test.
 
@@ -457,12 +457,12 @@ The user retains final control through Android volume, channel settings, silent 
 
 The feed is one-way.
 
-- G-man can send announcements.
-- Sectors can only read.
+- controller can send announcements.
+- Participants can only read.
 - System control events appear in the feed.
 - Both roles see the same allowed room feed.
 
-For G-man announcements and applicable control changes:
+For controller announcements and applicable control changes:
 
 - `notifyDevices` defaults to `true`.
 - Turning it off suppresses the FCM notification only.
@@ -608,7 +608,7 @@ presence/{roomId}/{uid}/lastSeen
 - Use `.info/connected`.
 - Register `onDisconnect` before marking the connection online.
 - A client writes only its own connection.
-- G-man reads the roster for its room.
+- controller reads the roster for its room.
 - Do not implement periodic Firestore heartbeat writes.
 
 ## 12. Security Rules
@@ -696,7 +696,7 @@ Use one polished initial `ColorScheme.fromSeed`. Seven selectable seed themes ar
 - **Join room**.
 - Restore active room when valid.
 
-### G-man
+### Controller
 
 Use Material 3 `NavigationBar` destinations:
 
@@ -708,14 +708,14 @@ Dashboard contains:
 
 - Six-digit PIN.
 - QR code.
-- Sector capacity, round count, duration, and cooldown configuration when editable.
-- Joined-sector roster.
+- Participant capacity, round count, duration, and cooldown configuration when editable.
+- Joined-Participant roster.
 - Online/offline and last seen.
 - Notification and exact-alarm readiness.
 - Timer state and controls.
 - Default-enabled notify checkbox for applicable actions.
 
-### Sector
+### Participant
 
 Use `NavigationBar` destinations:
 
@@ -758,7 +758,7 @@ Use the external browser. Also display application name, version, and build numb
 
 ## 15. Readiness Gate
 
-Before a G-man starts a run, show each joined device's available readiness:
+Before a controller starts a run, show each joined device's available readiness:
 
 - Currently online/offline.
 - Last seen.
@@ -767,7 +767,7 @@ Before a G-man starts a run, show each joined device's available readiness:
 - Selected sound mode.
 - Selected channel enabled/importance status where detectable.
 
-Do not permanently block the owner from starting because one sector is not ready, but require an explicit warning confirmation.
+Do not permanently block the owner from starting because one Participant is not ready, but require an explicit warning confirmation.
 
 Each device gets a local readiness page with actions to:
 
@@ -810,8 +810,8 @@ Cover:
 
 - Home.
 - Create/join validation.
-- G-man lobby.
-- Sector lobby.
+- controller lobby.
+- Participant lobby.
 - All timer states.
 - Offline/stale banners.
 - Readiness states.
@@ -830,7 +830,7 @@ Use Firebase Emulator Suite to prove:
 - Outsiders cannot read room data.
 - Members cannot modify schedules.
 - Capacity survives simultaneous joins.
-- Normalized sector-name uniqueness survives races.
+- Normalized Participant-name uniqueness survives races.
 - Duplicate command IDs are idempotent.
 - Stale revisions are rejected.
 - FCM/outbox events do not cross rooms.
@@ -850,7 +850,7 @@ Test at minimum:
 
 Test:
 
-- One G-man plus six sectors.
+- One controller plus six Participants.
 - Two simultaneous independent rooms.
 - PIN and QR joining.
 - Ongoing notification in shade and lock screen.
@@ -862,8 +862,8 @@ Test:
 - Exact alarm denied/revoked where applicable.
 - Manufacturer battery restrictions when real devices are available.
 - Client offline through multiple rounds.
-- Reconnect after G-man changed schedule.
-- G-man offline.
+- Reconnect after controller changed schedule.
+- controller offline.
 - Delayed, duplicated, and out-of-order FCM.
 - Bundled/system/vibration channel selection.
 - Sound choice reschedules future alarms.
@@ -907,18 +907,18 @@ Test:
 
 Do not implement:
 
-- Multiple co-G-men inside one room.
+- Multiple co-controllers inside one room.
 - Ownership recovery or transfer.
 - Student accounts.
 - Student ratings.
 - Team identities or rosters.
 - Team movement tracking.
-- “Team X is coming to your sector.”
+- “Team X is coming to your Participant.”
 - Integration with the future student-rating application.
 - Client chat or replies.
 - iOS, web, desktop, or Google Play publication.
 
-Keep room, sector, run, round, phase, and future team concepts separate so deferred features remain possible.
+Keep room, Participant, run, round, phase, and future team concepts separate so deferred features remain possible.
 
 ## 19. Ordered Implementation Pipeline
 
@@ -950,7 +950,7 @@ Work in this order:
 - Room creation.
 - PIN and QR join.
 - Membership and capacity.
-- G-man and sector lobby.
+- controller and Participant lobby.
 - Realtime Database presence.
 - Security rules and emulator tests.
 

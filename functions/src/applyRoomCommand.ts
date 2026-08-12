@@ -89,7 +89,7 @@ export async function handleApplyRoomCommand(
       };
       newStatus = 'paused';
       eventTitle = 'Event Paused';
-      eventBody = 'G-man paused the timer.';
+      eventBody = 'Controller paused the timer.';
     } else if (action === 'resume') {
       if (run.status !== 'paused' || !run.pausedState) {
         throw new HttpsError('failed-precondition', 'Run is not currently paused.');
@@ -124,7 +124,7 @@ export async function handleApplyRoomCommand(
       newPausedState = null;
       newStatus = 'running';
       eventTitle = 'Event Resumed';
-      eventBody = 'G-man resumed the timer.';
+      eventBody = 'Controller resumed the timer.';
     } else if (action === 'adjust_time') {
       if (!adjustmentMinutes || ![-5, -1, 1, 5].includes(adjustmentMinutes)) {
         throw new HttpsError('invalid-argument', 'adjustmentMinutes must be -5, -1, +1, or +5.');
@@ -160,7 +160,7 @@ export async function handleApplyRoomCommand(
 
       const sign = adjustmentMinutes > 0 ? `+${adjustmentMinutes}` : `${adjustmentMinutes}`;
       eventTitle = 'Timer Adjusted';
-      eventBody = `G-man adjusted active round duration by ${sign} minute(s).`;
+      eventBody = `Controller adjusted active round duration by ${sign} minute(s).`;
     } else if (action === 'end_round') {
       const activePhaseIndex = updatedSchedule.findIndex(p => p.startsAt <= now && now < p.endsAt);
       if (activePhaseIndex === -1) {
@@ -184,11 +184,11 @@ export async function handleApplyRoomCommand(
       }
 
       eventTitle = 'Round Ended Early';
-      eventBody = 'G-man ended the active round.';
+      eventBody = 'Controller ended the active round.';
     } else if (action === 'end_event') {
       newStatus = 'ended';
       eventTitle = 'Event Ended';
-      eventBody = 'G-man ended the event.';
+      eventBody = 'Controller ended the event.';
     } else {
       throw new HttpsError('invalid-argument', `Unknown action: ${action}`);
     }

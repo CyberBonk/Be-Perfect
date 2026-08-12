@@ -16,11 +16,11 @@ This workspace contains the complete, upgraded, and verified implementation of *
 1. **Product & Installed Application Title:** Configured as **Timer Be Perfect** in `AndroidManifest.xml` and `main.dart`. Event identity remains **Be Perfect**.
 2. **Temporary Logo Placeholder:** Displayed on `HomePage` reading **Insert Be Perfect logo here**.
 3. **User-Facing Copy Cleaned:**
-   - `Create Room (G-man)` -> `Create Room`
-   - `Join Room (Sector)` -> `Join Room`
-   - `G-man Dashboard` -> `Controller`
-   - `Sector View` -> `Timer`
-   - Jargon removed; `Controller` and `Participant` used only where a role must be explained.
+   - `Create Room` -> controller room creation
+   - `Join as Participant` -> participant room joining
+   - `Controller Dashboard` -> controller
+   - `Participant Timer` -> participant
+   - Jargon removed; `Controller` and `Participant` are the public role names.
 4. **Alarm Audio Asset Integration:**
    - Copied `Here is the alarm.mp3` to `android/app/src/main/res/raw/be_perfect_round_alarm.mp3`.
    - Notification channel updated to `be_perfect_round_custom_v2` with `RawResourceAndroidNotificationSound('be_perfect_round_alarm')`.
@@ -64,7 +64,7 @@ Be-Perfect/
 │   ├── features/
 │   │   ├── home/home_page.dart          -> Logo placeholder & Firebase error banner
 │   │   ├── rooms/                       -> CreateRoomDialog, JoinRoomDialog, QrScannerPage
-│   │   ├── timer/                       -> GmanDashboardPage, SectorTimerPage, TimerDisplayWidget
+│   │   ├── timer/                       -> ControllerDashboardPage, ParticipantTimerPage, TimerDisplayWidget
 │   │   ├── announcements/               -> AnnouncementsPage
 │   │   └── settings/                    -> SettingsPage (M3 Seed Picker) & AboutPage
 │   └── main.dart                        -> Application entry point & emulator toggle

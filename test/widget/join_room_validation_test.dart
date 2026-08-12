@@ -11,7 +11,7 @@ void main() {
 
     await tester.enterText(find.byKey(const ValueKey('room-pin-field')), '123');
     await tester.enterText(
-        find.byKey(const ValueKey('sector-name-field')), 'Alpha');
+        find.byKey(const ValueKey('participant-name-field')), 'Alpha');
     await tester.tap(find.byKey(const ValueKey('join-submit-button')));
     await tester.pump();
 
@@ -19,7 +19,7 @@ void main() {
         findsOneWidget);
   });
 
-  testWidgets('join validates sector name before contacting Firebase',
+  testWidgets('join validates participant name before contacting Firebase',
       (tester) async {
     await tester.pumpWidget(const ProviderScope(
       child: MaterialApp(home: JoinRoomDialog()),
@@ -30,8 +30,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('join-submit-button')));
     await tester.pump();
 
-    expect(
-        find.text('Sector display name must be between 1 and 30 characters.'),
+    expect(find.text('Participant name must be between 1 and 30 characters.'),
         findsOneWidget);
   });
 }
