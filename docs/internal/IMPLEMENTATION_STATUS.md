@@ -47,11 +47,10 @@
 ---
 
 ## 3. Current Blockers / Warnings
-- **Audio Asset:** Final custom audio file (`android/app/src/main/res/raw/be_perfect_round_alarm.wav`) pending delivery from CyberBonk. Channel fallback configured to system alarm sound until placed.
-- **Live Firebase Config:** Mobile app defaults to Firebase Emulator Suite (`10.0.2.2`). Add `android/app/google-services.json` when deploying to live Firebase.
+- **Live Firebase deployment:** The repository includes client-side Firebase configuration and rules, but each deployment must use its own Firebase project and verify its own Functions, permissions, and notification behavior.
 
 ---
 
 ## 4. Next Concrete Tasks
-1. Run `flutter build apk --release --split-per-abi` to verify signed release bundle creation.
+1. Preserve release symbols with each obfuscated build for crash decoding.
 2. Deploy or run Firebase Emulator Suite (`firebase emulators:start`) to test live room creation and PIN joining.

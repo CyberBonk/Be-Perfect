@@ -31,7 +31,7 @@ as public development context, separate from the running app.
 
 ## Project Status
 
-Version **2.2.0** is implemented in Flutter and backed by Firebase. It adds
+Version **2.2.5** is implemented in Flutter and backed by Firebase. It adds
 English/Arabic localization, a device-language default, participant messaging,
 synchronized server-clock timers, offline warnings, and persistent dismissible
 round alarms. Core room control works on the Firebase base plan through the
@@ -501,7 +501,7 @@ Server transactions enforce ownership, unique participant names, valid state tra
 
 ## Android Notifications and Alarms
 
-The app is distributed privately as ABI-split APK files. Version 2.2.0 also
+The app is distributed privately as ABI-split APK files. Version 2.2.5 also
 produces a Play-Store-ready App Bundle, although this milestone does not
 include publishing it.
 

@@ -74,16 +74,16 @@ flowchart LR
 | Round alarms and ongoing notification continue | Physical Android notification/alarm checks and notification implementation | Android permissions, battery policy, and force-stop state affect delivery | Verified with platform caveats |
 | Controller can see participant availability | Firebase Realtime Database heartbeat implementation and device testing | Presence is freshness data, not proof of user activity | Implemented and tested |
 | Joining never grants controller authority | Firestore rules, room authorization logic, and multi-role tests | A deployment must use the intended rules and Functions/configuration | Implemented and tested |
-| Release artifacts are reproducible | Obfuscated split-ABI build commands, symbols, checksums, and release records | The current repository has not been uploaded yet | Verified for recorded builds |
+| Release artifacts are reproducible | Obfuscated split-ABI build commands, symbols, checksums, and GitHub Release records | Android permissions, signing environment, and toolchain can affect a rebuild | Verified for the published release artifacts |
 
 ## Graphify refresh
 
-Generated from the correct repository root on **2026-08-12** with Graphify
+Generated from the correct repository root on **2026-08-13** with Graphify
 0.8.44 using the deterministic code update path:
 
-- 958 nodes
-- 1,338 edges
-- 87 communities
+- 931 nodes
+- 1,265 edges
+- 77 communities
 - 94% extracted edges and 5% inferred edges in the generated report
 
 Raw `graph.json`, `graph.html`, caches, and historical graph snapshots remain

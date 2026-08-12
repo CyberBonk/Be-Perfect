@@ -5,20 +5,81 @@ import '../../core/firebase/firebase_providers.dart';
 import '../../core/localization/app_locale.dart';
 import '../../core/models/feed_event_model.dart';
 
-// Events that should display as expanded cards (important ones)
-const _importantTitles = {
-  'Event Ended',
-  'Event Started',
-};
+enum _SystemEventKind { roundStarted, timerAdjusted, other }
 
-bool _isImportant(FeedEvent event) {
-  if (event.type == FeedEventType.announcement) return true;
-  // Round ended is important
-  if (event.title.contains('Round') && event.title.contains('Ended')) {
-    return true;
+String _eventText(FeedEvent event) =>
+    '${event.title} ${event.body}'.toLowerCase();
+
+_SystemEventKind _systemEventKind(FeedEvent event) {
+  final text = _eventText(event);
+  if (text.contains('adjust') || text.contains('تعديل')) {
+    return _SystemEventKind.timerAdjusted;
   }
-  // Check if title matches known important system events
-  return _importantTitles.any((t) => event.title.contains(t));
+  if (text.contains('round') &&
+          (text.contains('started') || text.contains('start')) ||
+      text.contains('بدأت الجولة') ||
+      text.contains('الجولة التالية')) {
+    return _SystemEventKind.roundStarted;
+  }
+  return _SystemEventKind.other;
+}
+
+int? _roundNumber(FeedEvent event) {
+  final source = '${event.title} ${event.body}';
+  final match = RegExp(
+    r'(?:round|الجولة)\s*(\d+)',
+    caseSensitive: false,
+  ).firstMatch(source);
+  return match == null ? null : int.tryParse(match.group(1)!);
+}
+
+String? _adjustmentLabel(FeedEvent event) {
+  final source = '${event.title} ${event.body}';
+  final match = RegExp(r'([+-]\s?\d+)').firstMatch(source);
+  return match?.group(1)?.replaceAll(' ', '');
+}
+
+String _systemSummary(BuildContext context, FeedEvent event) {
+  final text = _eventText(event);
+  final round = _roundNumber(event);
+
+  if (_systemEventKind(event) == _SystemEventKind.timerAdjusted) {
+    final delta = _adjustmentLabel(event);
+    if (delta != null) {
+      return context.tr(
+        'Controller $delta min',
+        'المتحكّم $delta دقيقة',
+      );
+    }
+    return context.tr('Timer adjusted', 'تم تعديل المؤقت');
+  }
+
+  if (_systemEventKind(event) == _SystemEventKind.roundStarted) {
+    return round == null
+        ? context.tr('Next round started', 'بدأت الجولة التالية')
+        : context.tr('Round $round started', 'بدأت الجولة $round');
+  }
+
+  if (text.contains('skip') || text.contains('تخط')) {
+    return round == null
+        ? context.tr('Round skipped', 'تم تخطّي الجولة')
+        : context.tr('Round $round skipped', 'تم تخطّي الجولة $round');
+  }
+  if (text.contains('pause') || text.contains('إيقاف')) {
+    return context.tr('Timer paused', 'تم إيقاف المؤقت');
+  }
+  if (text.contains('resume') || text.contains('استئناف')) {
+    return context.tr('Timer resumed', 'تم استئناف المؤقت');
+  }
+  if (text.contains('end') ||
+      text.contains('completed') ||
+      text.contains('اكتملت')) {
+    return round == null
+        ? context.tr('Round completed', 'اكتملت الجولة')
+        : context.tr('Round $round completed', 'اكتملت الجولة $round');
+  }
+
+  return event.title;
 }
 
 class AnnouncementsPage extends ConsumerStatefulWidget {
@@ -111,10 +172,11 @@ class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
                   );
                   final isAnnouncement =
                       event.type == FeedEventType.announcement;
-                  final important = _isImportant(event);
+                  final systemKind = _systemEventKind(event);
 
-                  if (important) {
-                    // Full expanded card for important events
+                  if (isAnnouncement || event.title.contains('Event Ended')) {
+                    // Human announcements and event closure deserve the full
+                    // card treatment. Routine timer controls stay quiet.
                     return Card(
                       margin: const EdgeInsets.only(bottom: 10),
                       color: isAnnouncement
@@ -169,37 +231,111 @@ class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
                         ),
                       ),
                     );
-                  } else {
-                    // Compact one-liner for minor system events (pause, resume, adjust, skip)
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: ListTile(
-                        dense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 0),
-                        leading: Icon(
-                          Icons.settings,
-                          size: 16,
-                          color: theme.colorScheme.onSurfaceVariant,
+                  }
+
+                  if (systemKind == _SystemEventKind.roundStarted) {
+                    final accent = theme.colorScheme.primary;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer.withValues(
+                          alpha: 0.72,
                         ),
-                        title: Text(
-                          '${event.title}  ·  ${event.body}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.22),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: accent.withValues(alpha: 0.14),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.skip_next_rounded,
+                              size: 20,
+                              color: accent,
+                            ),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: Text(
-                          timeStr,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontSize: 11,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  context.tr(
+                                    'Next round',
+                                    'الجولة التالية',
+                                  ),
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: accent,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _systemSummary(context, event),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Text(
+                            timeStr,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   }
+
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      left: 4,
+                      right: 4,
+                      bottom: 4,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.circle,
+                          size: 7,
+                          color: theme.colorScheme.outline,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _systemSummary(context, event),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          timeStr,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 },
               );
             },

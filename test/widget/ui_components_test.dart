@@ -41,6 +41,14 @@ void main() {
     ));
     expect(find.text('Paused'), findsOneWidget);
     expect(find.byIcon(Icons.pause_circle_outline), findsOneWidget);
+
+    await tester.pumpWidget(host(
+      TimerDisplayWidget(
+        derivedState: state(DerivedPhaseState.cooldown),
+      ),
+    ));
+    expect(find.text('Next Round'), findsOneWidget);
+    expect(find.text('The next round starts soon'), findsOneWidget);
   });
 
   testWidgets('home page opens join room dialog and about page',

@@ -35,7 +35,7 @@ class TimerDisplayWidget extends StatelessWidget {
         statusColor = theme.colorScheme.primary;
         break;
       case DerivedPhaseState.cooldown:
-        statusText = context.tr('Cooldown Period', 'فترة راحة');
+        statusText = context.tr('Next Round', 'الجولة التالية');
         statusColor = theme.colorScheme.secondary;
         break;
       case DerivedPhaseState.paused:
@@ -57,9 +57,9 @@ class TimerDisplayWidget extends StatelessWidget {
         final double parentWidth = constraints.maxWidth;
         final bool isSmallScreen = parentWidth < 360;
 
-        final double verticalPadding = isSmallScreen ? 16.0 : 28.0;
+        final double verticalPadding = isSmallScreen ? 16.0 : 22.0;
         final double horizontalPadding = isSmallScreen ? 16.0 : 24.0;
-        final double timerFontSize = (parentWidth * 0.22).clamp(44.0, 96.0);
+        final double timerFontSize = (parentWidth * 0.20).clamp(44.0, 92.0);
         final double iconSize = isSmallScreen ? 16.0 : 20.0;
 
         return Container(
@@ -74,74 +74,129 @@ class TimerDisplayWidget extends StatelessWidget {
             border: Border.all(
               color: isOffline
                   ? theme.colorScheme.error
-                  : statusColor.withValues(alpha: 0.4),
-              width: 2,
+                  : statusColor.withValues(alpha: 0.28),
+              width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: statusColor.withValues(alpha: 0.1),
-                blurRadius: 16,
-                spreadRadius: 2,
+                color: statusColor.withValues(alpha: 0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      derivedState.state == DerivedPhaseState.paused
-                          ? Icons.pause_circle_outline
-                          : Icons.timer_outlined,
-                      color: statusColor,
-                      size: iconSize,
+              Row(
+                children: [
+                  Expanded(
+                    child: FittedBox(
+                      alignment: AlignmentDirectional.centerStart,
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            derivedState.state == DerivedPhaseState.paused
+                                ? Icons.pause_circle_outline
+                                : derivedState.state ==
+                                        DerivedPhaseState.cooldown
+                                    ? Icons.skip_next_rounded
+                                    : Icons.timer_outlined,
+                            color: statusColor,
+                            size: iconSize,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            statusText,
+                            style: (isSmallScreen
+                                    ? theme.textTheme.titleSmall
+                                    : theme.textTheme.titleMedium)
+                                ?.copyWith(
+                              color: statusColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      statusText,
-                      style: (isSmallScreen
-                              ? theme.textTheme.titleSmall
-                              : theme.textTheme.titleMedium)
-                          ?.copyWith(
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '${derivedState.currentRoundIndex}/${derivedState.totalRounds}',
+                      style: theme.textTheme.labelLarge?.copyWith(
                         color: statusColor,
                         fontWeight: FontWeight.bold,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: isSmallScreen ? 12 : 16),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  vertical: isSmallScreen ? 12 : 16,
+                  horizontal: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      context.tr('TIME LEFT', 'الوقت المتبقي'),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        derivedState.isStartingCountdown
+                            ? '${derivedState.startingCountdownSeconds}'
+                            : derivedState.formattedTime,
+                        style: TextStyle(
+                          fontSize: timerFontSize,
+                          height: 1.05,
+                          fontWeight: FontWeight.bold,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                          color: derivedState.state == DerivedPhaseState.paused
+                              ? theme.colorScheme.onSurfaceVariant
+                              : theme.colorScheme.onSurface,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 10 : 16),
-              // Dynamic scaling countdown timer with tabular figures
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  derivedState.isStartingCountdown
-                      ? '${derivedState.startingCountdownSeconds}'
-                      : derivedState.formattedTime,
-                  style: TextStyle(
-                    fontSize: timerFontSize,
-                    fontWeight: FontWeight.bold,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                    color: derivedState.state == DerivedPhaseState.paused
-                        ? theme.colorScheme.onSurfaceVariant
-                        : theme.colorScheme.onSurface,
-                  ),
-                ),
-              ),
-              SizedBox(height: isSmallScreen ? 6 : 8),
+              const SizedBox(height: 10),
               Text(
-                context.tr(
-                  'Round ${derivedState.currentRoundIndex} of ${derivedState.totalRounds}',
-                  'الجولة ${derivedState.currentRoundIndex} من ${derivedState.totalRounds}',
-                ),
-                style: (isSmallScreen
-                        ? theme.textTheme.labelMedium
-                        : theme.textTheme.titleSmall)
-                    ?.copyWith(
+                derivedState.state == DerivedPhaseState.cooldown
+                    ? context.tr(
+                        'The next round starts soon',
+                        'تبدأ الجولة التالية قريبًا',
+                      )
+                    : context.tr(
+                        'Round ${derivedState.currentRoundIndex} of ${derivedState.totalRounds}',
+                        'الجولة ${derivedState.currentRoundIndex} من ${derivedState.totalRounds}',
+                      ),
+                style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                 ),
