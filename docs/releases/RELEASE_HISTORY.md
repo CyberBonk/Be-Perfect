@@ -4,6 +4,10 @@ This history is reconstructed from the recorded Desktop delivery folder, build
 metadata, checksums, and project handoff records. APKs and AABs should be
 attached to GitHub Releases rather than committed to the source tree.
 
+The public repository was initialized after these delivery milestones, so the
+release assets and checksums are the authoritative version evidence; earlier
+source commits were not preserved in the original workspace.
+
 | Version | Build | Position in the project | Evidence |
 | --- | ---: | --- | --- |
 | 2.1.0 | 4 | First verified delivery milestone | Desktop release folder, APK/AAB checksums, 36 tests, clean analyzer |
