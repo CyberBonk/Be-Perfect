@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/firebase/firebase_providers.dart';
 import '../../core/localization/app_locale.dart';
+import '../../core/models/sound_mode.dart';
 import '../../core/notifications/notification_service.dart';
+import '../../core/notifications/ringer_service.dart';
 import 'qr_scanner_page.dart';
 
 class JoinRoomDialog extends ConsumerStatefulWidget {
@@ -73,6 +76,9 @@ class _JoinRoomDialogState extends ConsumerState<JoinRoomDialog> {
       await ref.read(activeRoomPinProvider.notifier).update(null);
       await ref.read(userSectorNameProvider.notifier).update(res['sectorName']);
       await ref.read(activeRoomIdProvider.notifier).update(res['roomId']);
+      if (soundMode != SoundMode.vibrationOnly) {
+        unawaited(RingerService().forceSoundMode());
+      }
 
       if (mounted) {
         Navigator.of(context).pop();

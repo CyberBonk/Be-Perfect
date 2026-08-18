@@ -5,6 +5,7 @@ import '../../core/firebase/firebase_providers.dart';
 import '../../core/firebase/server_clock.dart';
 import '../../core/localization/app_locale.dart';
 import '../../core/models/room_model.dart';
+import '../../core/notifications/ringer_service.dart';
 import '../../core/timer/schedule_engine.dart';
 
 import 'timer_display_widget.dart';
@@ -23,10 +24,13 @@ class _ParticipantTimerPageState extends ConsumerState<ParticipantTimerPage> {
   TimerDerivedState? _lastDerivedState;
   int? _activeAlarmRound;
   String? _checkedActiveAlarmRunId;
+  bool _isAudible = true;
+  int _audioCheckCounter = 0;
 
   @override
   void initState() {
     super.initState();
+    _checkAudioReadiness();
     // Repaint more frequently than once per second so both devices cross a
     // shared server-timestamp boundary without a whole-second visual lag.
     _localTicker = Timer.periodic(const Duration(milliseconds: 250), (_) {
@@ -51,11 +55,28 @@ class _ParticipantTimerPageState extends ConsumerState<ParticipantTimerPage> {
         _checkedActiveAlarmRunId = null;
       }
 
+      _audioCheckCounter++;
+      if (_audioCheckCounter % 8 == 0) {
+        _checkAudioReadiness();
+      }
+
       setState(() {
         _nowMs = nowMs;
         if (endedRound != null) _activeAlarmRound = endedRound;
       });
     });
+  }
+
+  Future<void> _checkAudioReadiness() async {
+    final audible = await RingerService().isSoundModeAudible();
+    if (mounted && _isAudible != audible) {
+      setState(() => _isAudible = audible);
+    }
+  }
+
+  Future<void> _enableSoundAndMaxVolume() async {
+    await RingerService().forceSoundMode();
+    await _checkAudioReadiness();
   }
 
   @override
@@ -148,6 +169,49 @@ class _ParticipantTimerPageState extends ConsumerState<ParticipantTimerPage> {
                 ],
               ),
             ),
+            if (!_isAudible)
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+                color: theme.colorScheme.errorContainer,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.volume_off,
+                      size: 16,
+                      color: theme.colorScheme.onErrorContainer,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        context.tr(
+                          'Device sound is low or muted.',
+                          'صوت الجهاز منخفض أو مكتوم.',
+                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onErrorContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(0, 32),
+                      ),
+                      onPressed: _enableSoundAndMaxVolume,
+                      child: Text(
+                        context.tr('Max Volume', 'أقصى صوت'),
+                        style: TextStyle(
+                          color: theme.colorScheme.onErrorContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Expanded(
               child: Center(
                 child: SingleChildScrollView(

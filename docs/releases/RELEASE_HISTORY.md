@@ -12,7 +12,8 @@ source commits were not preserved in the original workspace.
 | --- | ---: | --- | --- |
 | 2.1.0 | 4 | First verified delivery milestone | Desktop release folder, APK/AAB checksums, 36 tests, clean analyzer |
 | 2.2.0 | 5 | Shared alarm and locale transition milestone | `pubspec.yaml`, Android metadata, recorded APK rebuild |
-| 2.2.5 | Internal | Current polished release | `pubspec.yaml`, UI tests, release APK/AAB checksums, GitHub Release |
+| 2.2.5 | Internal | Polished UI and event presentation | `pubspec.yaml`, UI tests, release APK/AAB checksums, GitHub Release |
+| 2.2.6 | 7 | Bulletproof sound, volume & Huawei EMUI fix | `pubspec.yaml`, unit tests, release APK/AAB checksums, GitHub Release |
 
 ## 2.1.0+4
 
@@ -66,6 +67,16 @@ The published `2.2.5` artifacts are the current release assets. The source
 repository remains the place for code and documentation; binaries belong to the
 GitHub Release.
 
+## 2.2.6
+
+This release ensures robust audible delivery across all Android OEM devices:
+
+- Protected Huawei EMUI devices from auto-downgrading to vibration mode by boosting volume streams prior to ringer mode changes.
+- Isolated stream volume maximization so permission restrictions on one stream do not abort others.
+- Upgraded notification channels to `v4` with `Importance.max` and custom alarm audio.
+- Added audible readiness detection and one-tap **Max Volume** controls in the participant UI and settings.
+- Direct Do Not Disturb (DND) Access shortcut in Settings.
+
 ## Difference at a glance
 
 ```text
@@ -74,4 +85,6 @@ GitHub Release.
               + 500 ms locale transition + refreshed release metadata/build
 2.2.5    ->  shorter system summaries + clearer next-round timer state
               + compact timer card + refreshed release artifacts
+2.2.6    ->  bulletproof volume enforcement + Huawei EMUI ringer protection
+              + v4 notification channels + audible readiness banner
 ```

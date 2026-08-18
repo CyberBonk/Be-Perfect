@@ -6,10 +6,10 @@ class NotificationChannels {
   static const String timerChannelDesc =
       'Ongoing silent event timer notification';
 
-  // v3 resets old OEM channel choices that were saved as vibration-only.
-  static const String announcementsChannelId = 'be_perfect_announcements_v3';
+  // v4 resets old OEM channel choices and guarantees loud audible announcements.
+  static const String announcementsChannelId = 'be_perfect_announcements_v4';
   static const String announcementsChannelName = 'Room announcements';
-  static const String standardChannelId = 'be_perfect_standard_v1';
+  static const String standardChannelId = 'be_perfect_standard_v2';
   static const String standardChannelName = 'Room updates';
 
   static Future<void> setupNotificationChannels(
@@ -32,13 +32,13 @@ class NotificationChannels {
       ),
     );
 
-    // 2. Announcements Channel
+    // 2. Announcements Channel (Highest Priority + Sound)
     await androidPlugin.createNotificationChannel(
       const AndroidNotificationChannel(
         announcementsChannelId,
         announcementsChannelName,
         description: 'Text announcements from the room controller',
-        importance: Importance.high,
+        importance: Importance.max,
         playSound: true,
         sound: RawResourceAndroidNotificationSound('be_perfect_round_alarm'),
         enableVibration: true,
@@ -50,7 +50,7 @@ class NotificationChannels {
         standardChannelId,
         standardChannelName,
         description: 'Normal room updates and time adjustments',
-        importance: Importance.high,
+        importance: Importance.max,
         playSound: true,
         enableVibration: true,
       ),

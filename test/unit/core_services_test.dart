@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:be_perfect/core/firebase/firebase_providers.dart';
 import 'package:be_perfect/core/notifications/notification_service.dart';
+import 'package:be_perfect/core/notifications/ringer_service.dart';
 import 'package:be_perfect/core/theme/app_theme.dart';
 import 'package:be_perfect/core/models/sound_mode.dart';
 
@@ -57,5 +58,14 @@ void main() {
     expect(service.getRoundAlarmNotificationId(roomId, 1),
         isNot(service.getRoundAlarmNotificationId(roomId, 2)));
     expect(service.getRoundAlarmNotificationId(roomId, 1), greaterThan(0));
+  });
+
+  test('ringer service handles fallback state cleanly in test environment', () async {
+    final ringer = RingerService();
+    expect(await ringer.isSoundModeEnabled(), isTrue);
+    expect(await ringer.isSoundModeAudible(), isTrue);
+    expect(await ringer.isDndAccessGranted(), isFalse);
+    await ringer.forceSoundMode();
+    await ringer.restoreVolumes();
   });
 }

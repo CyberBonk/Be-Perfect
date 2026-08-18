@@ -341,19 +341,24 @@ class NotificationService {
   Future<void> showActionNotification({
     required String title,
     required String body,
+    String? channelId,
   }) async {
+    final targetChannel =
+        channelId ?? NotificationChannels.announcementsChannelId;
     final id = DateTime.now().millisecondsSinceEpoch % 100000;
     await _notificationsPlugin.show(
       id: id,
       title: title,
       body: body,
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
-          NotificationChannels.standardChannelId,
-          NotificationChannels.standardChannelName,
-          importance: Importance.high,
-          priority: Priority.high,
+          targetChannel,
+          NotificationChannels.announcementsChannelName,
+          importance: Importance.max,
+          priority: Priority.max,
           playSound: true,
+          sound:
+              const RawResourceAndroidNotificationSound('be_perfect_round_alarm'),
           enableVibration: true,
         ),
       ),

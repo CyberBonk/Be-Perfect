@@ -54,6 +54,27 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         );
   }
 
+  Future<void> _maximizeVolume() async {
+    await RingerService().forceSoundMode();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'Sound mode enabled and volume set to maximum.',
+              'تم تفعيل وضع الصوت وضبط مستوى الصوت على الحد الأقصى.',
+            ),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openDndSettings() async {
+    await RingerService().openDndSettings();
+  }
+
   Future<void> _selectLanguage(String? languageCode) async {
     if (languageCode == null) return;
     await ref.read(appLocaleProvider.notifier).setLanguage(languageCode);
@@ -227,12 +248,28 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
           ),
           const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: () => _testSound(selectedSoundMode),
-            icon: const Icon(Icons.volume_up),
-            label: Text(
-              context.tr('Test Selected Sound', 'تجربة الصوت المحدد'),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _testSound(selectedSoundMode),
+                  icon: const Icon(Icons.volume_up),
+                  label: Text(
+                    context.tr('Test Sound', 'تجربة الصوت'),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: _maximizeVolume,
+                  icon: const Icon(Icons.volume_up_outlined),
+                  label: Text(
+                    context.tr('Max Volume', 'أقصى صوت'),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
           Text(
@@ -280,6 +317,24 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   ),
                   trailing: const Icon(Icons.open_in_new, size: 20),
                   onTap: () => _openAndroidSettings(exactAlarm: true),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.do_not_disturb_on_outlined),
+                  title: Text(
+                    context.tr(
+                      'Do Not Disturb Access',
+                      'إذن تجاوز عدم الإزعاج',
+                    ),
+                  ),
+                  subtitle: Text(
+                    context.tr(
+                      'Allow auto-enabling sound mode & max volume on OEM skins',
+                      'السماح بضبط وضع الصوت والحد الأقصى تلقائيًا',
+                    ),
+                  ),
+                  trailing: const Icon(Icons.open_in_new, size: 20),
+                  onTap: _openDndSettings,
                 ),
               ],
             ),
